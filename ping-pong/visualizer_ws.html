@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Ping-Pong Performance Visualizer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .connection-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #f44336;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-indicator.connected {
+            background: #4CAF50;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-wrapper {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(5px);
+            position: relative;
+            height: 35vh;
+        }
+        
+        .chart-title {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        
+        .controls-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .controls-section h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        
+        .control-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        input[type="text"] {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            color: white;
+            padding: 8px 12px;
+            font-size: 14px;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        input[type="text"]::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        button {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .disconnect-btn {
+            background: linear-gradient(45deg, #f44336, #da190b);
+        }
+        
+        .clear-btn {
+            background: linear-gradient(45deg, #ff9800, #f57c00);
+        }
+        
+        .log-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+        }
+        
+        .log-container {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            padding: 15px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            opacity: 0;
+            animation: fadeIn 0.3s ease forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @media (max-width: 768px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏓 Live Ping-Pong Performance Monitor</h1>
+        
+        <div class="connection-status">
+            <div class="status-indicator" id="statusIndicator"></div>
+            <span id="statusText">Disconnected</span>
+        </div>
+        
+        <div class="controls-section">
+            <h3>🔗 Connection Settings</h3>
+            <div class="control-group">
+                <input type="text" id="wsUrl" placeholder="ws://localhost:8080" value="ws://localhost:8080">
+                <button onclick="connectWebSocket()" id="connectBtn">Connect</button>
+                <button onclick="disconnectWebSocket()" id="disconnectBtn" class="disconnect-btn" disabled>Disconnect</button>
+                <button onclick="clearData()" class="clear-btn">Clear Data</button>
+            </div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalRounds">0M</div>
+                <div class="stat-label">Total Rounds</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgLatency">0.00 μs</div>
+                <div class="stat-label">Average Latency</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgThroughput">0.00M/s</div>
+                <div class="stat-label">Average Throughput</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="peakThroughput">0.00M/s</div>
+                <div class="stat-label">Peak Throughput</div>
+            </div>
+        </div>
+        
+        <div class="charts-container">
+            <div class="chart-wrapper">
+                <div class="chart-title">Throughput Over Time</div>
+                <canvas id="throughputChart"></canvas>
+            </div>
+            <div class="chart-wrapper">
+                <div class="chart-title">Latency Over Time</div>
+                <canvas id="latencyChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="log-section">
+            <h3>📋 Live Log Stream</h3>
+            <div class="log-container" id="logContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let throughputChart, latencyChart;
+        let allData = [];
+        const maxDataPoints = 100; // Keep last 100 data points for performance
+        
+        // Initialize charts
+        function initCharts() {
+            const throughputCtx = document.getElementById('throughputChart').getContext('2d');
+            const latencyCtx = document.getElementById('latencyChart').getContext('2d');
+            
+            const chartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    duration: 300
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: 'white'
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: 'white' },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    },
+                    y: {
+                        ticks: { color: 'white' },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    }
+                }
+            };
+            
+            throughputChart = new Chart(throughputCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Throughput (M rounds/sec)',
+                        data: [],
+                        borderColor: '#4CAF50',
+                        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 2
+                    }]
+                },
+                options: chartOptions
+            });
+            
+            latencyChart = new Chart(latencyCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Latency (μs)',
+                        data: [],
+                        borderColor: '#2196F3',
+                        backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 2
+                    }]
+                },
+                options: chartOptions
+            });
+        }
+        
+        function connectWebSocket() {
+            const url = document.getElementById('wsUrl').value;
+            
+            try {
+                ws = new WebSocket(url);
+                
+                ws.onopen = function() {
+                    updateConnectionStatus(true, 'Connected');
+                    document.getElementById('connectBtn').disabled = true;
+                    document.getElementById('disconnectBtn').disabled = false;
+                };
+                
+                ws.onmessage = function(event) {
+                    const data = event.data.trim();
+                    if (data) {
+                        addLogEntry(data);
+                        processLogLine(data);
+                    }
+                };
+                
+                ws.onclose = function() {
+                    updateConnectionStatus(false, 'Disconnected');
+                    document.getElementById('connectBtn').disabled = false;
+                    document.getElementById('disconnectBtn').disabled = true;
+                };
+                
+                ws.onerror = function(error) {
+                    updateConnectionStatus(false, 'Connection Error');
+                    addLogEntry(`Error: ${error.message || 'WebSocket connection failed'}`);
+                };
+                
+            } catch (error) {
+                updateConnectionStatus(false, 'Connection Failed');
+                addLogEntry(`Error: ${error.message}`);
+            }
+        }
+        
+        function disconnectWebSocket() {
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+        }
+        
+        function updateConnectionStatus(connected, text) {
+            const indicator = document.getElementById('statusIndicator');
+            const statusText = document.getElementById('statusText');
+            
+            indicator.className = connected ? 'status-indicator connected' : 'status-indicator';
+            statusText.textContent = text;
+        }
+        
+        function addLogEntry(text) {
+            const MAX_LOG_ENTRIES = 200;
+
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            const timestamp = new Date().toLocaleTimeString();
+            entry.innerHTML = `<span style="color: #888;">[${timestamp}]</span> ${text}`;
+            const logContainer = document.getElementById('logContainer');
+            logContainer.appendChild(entry);
+
+            while (logContainer.children.length > MAX_LOG_ENTRIES) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
+
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+        
+        function processLogLine(line) {
+            const match = line.match(/PING: Completed (\d+)M rounds, Avg latency: ([\d.]+) μs, Throughput: ([\d.]+) rounds\/sec/);
+            if (match) {
+                const rounds = parseInt(match[1]);
+                const latency = parseFloat(match[2]);
+                const throughput = parseFloat(match[3]) / 1000000; // Convert to millions
+                
+                allData.push({
+                    rounds,
+                    latency,
+                    throughput,
+                    timestamp: Date.now()
+                });
+                
+                // Keep only recent data points for performance
+                if (allData.length > maxDataPoints) {
+                    allData.shift();
+                }
+                
+                updateCharts();
+                updateStats();
+            }
+        }
+        
+        function updateCharts() {
+            const labels = allData.map(d => `${d.rounds}M`);
+            const throughputData = allData.map(d => d.throughput);
+            const latencyData = allData.map(d => d.latency);
+            
+            throughputChart.data.labels = labels;
+            throughputChart.data.datasets[0].data = throughputData;
+            throughputChart.update('none'); // No animation for live updates
+            
+            latencyChart.data.labels = labels;
+            latencyChart.data.datasets[0].data = latencyData;
+            latencyChart.update('none'); // No animation for live updates
+        }
+        
+        function updateStats() {
+            if (allData.length === 0) return;
+            
+            const totalRounds = Math.max(...allData.map(d => d.rounds));
+            const avgLatency = allData.reduce((sum, d) => sum + d.latency, 0) / allData.length;
+            const avgThroughput = allData.reduce((sum, d) => sum + d.throughput, 0) / allData.length;
+            const peakThroughput = Math.max(...allData.map(d => d.throughput));
+            
+            document.getElementById('totalRounds').textContent = `${totalRounds}M`;
+            document.getElementById('avgLatency').textContent = `${avgLatency.toFixed(3)} μs`;
+            document.getElementById('avgThroughput').textContent = `${avgThroughput.toFixed(2)}M/s`;
+            document.getElementById('peakThroughput').textContent = `${peakThroughput.toFixed(2)}M/s`;
+        }
+        
+        function clearData() {
+            allData = [];
+            throughputChart.data.labels = [];
+            throughputChart.data.datasets[0].data = [];
+            latencyChart.data.labels = [];
+            latencyChart.data.datasets[0].data = [];
+            throughputChart.update();
+            latencyChart.update();
+            
+            document.getElementById('totalRounds').textContent = '0M';
+            document.getElementById('avgLatency').textContent = '0.00 μs';
+            document.getElementById('avgThroughput').textContent = '0.00M/s';
+            document.getElementById('peakThroughput').textContent = '0.00M/s';
+            
+            document.getElementById('logContainer').innerHTML = '';
+        }
+        
+        // Initialize on page load
+        window.onload = function() {
+            initCharts();
+        };
+        
+        // Clean up on page unload
+        window.onbeforeunload = function() {
+            if (ws) {
+                ws.close();
+            }
+        };
+    </script>
+</body>
+</html>
