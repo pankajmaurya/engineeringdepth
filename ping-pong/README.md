@@ -18,3 +18,4 @@ Use the UI.
 ./pingpong_stopbillion pong
 ```
 
+Sample recording with benchmarking already done: https://www.youtube.com/watch?v=SBSSIAtUtDw
