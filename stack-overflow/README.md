@@ -1,1 +1,1 @@
-https://engineeringdepth.substack.com/publish/post/166745583
+https://engineeringdepth.substack.com/p/stack-overflow
