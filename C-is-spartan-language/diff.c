@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+
 #define DEBUG 0
 /* This program takes input 2 files paths and prints the first line where they differ */
 int main(int argc, char *argv[])
@@ -21,7 +23,7 @@ int main(int argc, char *argv[])
 	char *res2;
 	int line_num = 1;
 
-	void report(int lno, char *r1, char *r2);
+	void report_and_exit(int lno, char *r1, char *r2);
 	void debug_report(int lno, char *r1, char *r2, char *extra);
 
 	/*
@@ -33,8 +35,7 @@ int main(int argc, char *argv[])
 		&& (res2 = fgets(buf2, 100, fp2)) != NULL) {
 		int cmp;	
 		if ((cmp = strncmp(buf1, buf2, 100)) != 0) {
-			report(line_num, res1, res2);
-			return 0;
+			report_and_exit(line_num, res1, res2);
 		}
 		char debug[10];
 		sprintf(debug, "Cmp: %d", cmp); 
@@ -47,9 +48,9 @@ int main(int argc, char *argv[])
 	if (res1 == NULL) {
 		res2 = fgets(buf2, 100, fp2);
 		if (res2 != NULL)
-			report(line_num, res1, res2);
+			report_and_exit(line_num, res1, res2);
 	} else if (res1 != NULL && res2 == NULL) {
-		report(line_num, res1, res2);
+		report_and_exit(line_num, res1, res2);
 	}
 	
 	printf("IDENTICAL FILES\n");	
@@ -61,9 +62,10 @@ void debug_report(int line_num, char *res1, char *res2, char* extra_info)
 		printf("[DEBUG] [line %d] File1: %s, File2: %s, extra info: %s\n", line_num, 
 		res1 == NULL ? "<NULL>" : res1, res2 == NULL ? "<NULL>" : res2, extra_info); 		
 }
-void report(int line_num, char *res1, char *res2)
+void report_and_exit(int line_num, char *res1, char *res2)
 {
 	printf("Difference found at line %d\nFile1: %sFile2: %s\n", line_num, 
 		res1 == NULL ? "<NULL>" : res1, res2 == NULL ? "<NULL>" : res2); 		
+	exit(0);
 }
 
