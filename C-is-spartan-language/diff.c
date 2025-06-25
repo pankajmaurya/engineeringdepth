@@ -14,8 +14,10 @@ int main(int argc, char *argv[])
 	FILE *fp1 = fopen(argv[1], "r");
 	FILE *fp2 = fopen(argv[2], "r");
 
-	if (fp1 == NULL || fp2 == NULL)
+	if (fp1 == NULL || fp2 == NULL) {
+		printf("Argument files invalid\n");
 		return 2;
+	}
 
 	char buf1[100];
 	char buf2[100];
@@ -46,6 +48,7 @@ int main(int argc, char *argv[])
 		debug_report(line_num, res1, res2, debug);
 		line_num++;
 	}
+
 	/*
 	 * When res1 is NULL, above while loop breaks, hence read fp2.
 	 */
