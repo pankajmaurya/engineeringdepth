@@ -34,8 +34,12 @@ int main(int argc, char *argv[])
 	while ((res1 = fgets(buf1, 100, fp1)) != NULL 
 		&& (res2 = fgets(buf2, 100, fp2)) != NULL) {
 		int cmp;	
-		if ((cmp = strncmp(buf1, buf2, 100)) != 0) {
-			report_and_exit(line_num, res1, res2);
+		if ((cmp = strncmp(res1, res2, 100)) != 0) {
+		// We can call strncmp with buf or res equivalently.
+		// if ((cmp = strncmp(buf1, buf2, 100)) != 0) {
+			// Using buf or res is equivalent for reporting.
+			// report_and_exit(line_num, res1, res2);
+			report_and_exit(line_num, buf1, buf2);
 		}
 		char debug[10];
 		sprintf(debug, "Cmp: %d", cmp); 
