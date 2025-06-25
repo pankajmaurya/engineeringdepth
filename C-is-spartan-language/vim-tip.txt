@@ -1,0 +1,9 @@
+set tabstop=8 => how fat is the tab
+set shiftwidth=8 => useful for indentation via << or >>
+set noexpandtab => do not convert tabs to spaces (see Linux Kernel style guide)
+set number => show line numbers
+syntax on => syntax highlighting
+set ruler => shows column and row count
+set mouse=a => enables mouse
+runtime! ftplugin/man.vim => !Man strcmp, !Man fopen etc.
+map <F8> :!gcc % -o %:r && ./%:r<CR> => Compile and run current program by F8 key
