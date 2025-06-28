@@ -1,0 +1,5 @@
+# Redis Python client
+redis==5.0.1
+
+# Optional: For more advanced Redis operations
+# redis-py-cluster==2.1.3
