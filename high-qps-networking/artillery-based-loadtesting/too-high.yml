@@ -1,0 +1,18 @@
+config:
+  target: 'http://dummy'
+  phases:
+    - duration: 60
+      arrivalRate: 100  # Fixed 100 RPS
+      name: "TCP RPS Baseline"
+    - duration: 60
+      arrivalRate: 200  # Fixed 200 RPS
+      name: "TCP RPS Medium"
+    - duration: 60
+      arrivalRate: 500  # Fixed 500 RPS
+      name: "TCP RPS High"
+  processor: "./tcp-processor.js"
+
+scenarios:
+  - name: "Custom TCP Test"
+    flow:
+      - function: "customTcpTest"

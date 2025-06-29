@@ -1,0 +1,18 @@
+config:
+  target: 'http://dummy'
+  phases:
+    - duration: 60
+      arrivalRate: 25
+      name: "Find baseline"
+    - duration: 60  
+      arrivalRate: 50
+      name: "Conservative ramp"
+    - duration: 60
+      arrivalRate: 100
+      name: "Moderate load"
+  processor: "./tcp-processor.js"
+
+scenarios:
+  - name: "Custom TCP Test"
+    flow:
+      - function: "customTcpTest"

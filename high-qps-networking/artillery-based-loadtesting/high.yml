@@ -1,0 +1,12 @@
+config:
+  target: 'http://dummy'
+  phases:
+    - duration: 60
+      arrivalRate: 225
+      name: "Test 225 RPS - Near Breaking Point"
+  processor: "./tcp-processor.js"
+
+scenarios:
+  - name: "Custom TCP Test"
+    flow:
+      - function: "customTcpTest"
