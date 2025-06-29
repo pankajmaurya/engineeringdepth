@@ -1,0 +1,13 @@
+config:
+  target: 'http://dummy'  # Dummy target since we're using custom TCP
+  phases:
+    - duration: 30
+      arrivalRate: 10
+      rampTo: 50
+      name: "TCP Load test"
+  processor: "./tcp-processor.js"
+
+scenarios:
+  - name: "Custom TCP Test"
+    flow:
+      - function: "customTcpTest"
