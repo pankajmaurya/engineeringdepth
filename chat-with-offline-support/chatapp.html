@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline Chat App</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(to bottom right, #dbeafe, #e0e7ff);
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1f2937;
+        }
+        
+        .header p {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+        
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #374151;
+        }
+        
+        .btn-secondary:hover {
+            background: #d1d5db;
+        }
+        
+        .btn-danger {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+        
+        .btn-danger:hover {
+            background: #fee2e2;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.25rem;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            ring: 2px;
+            ring-color: #3b82f6;
+            border-color: transparent;
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            background: white;
+        }
+        
+        .form-textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+        
+        .grid-2 {
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+        
+        .tab-container {
+            display: flex;
+            margin-bottom: 1rem;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            background: #f3f4f6;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+        
+        .tab:first-child {
+            border-radius: 0.5rem 0 0 0.5rem;
+        }
+        
+        .tab:last-child {
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+        
+        .tab.active {
+            background: #2563eb;
+            color: white;
+        }
+        
+        .notification {
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .notification.success {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .notification.error {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        
+        .notification.warning {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        
+        .notification.info {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+        
+        .message-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .message {
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+            border-left: 4px solid;
+            background: #f9fafb;
+        }
+        
+        .message.sent {
+            border-left-color: #3b82f6;
+        }
+        
+        .message.received {
+            border-left-color: #10b981;
+        }
+        
+        .message-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 0.25rem;
+        }
+        
+        .message-from {
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+        
+        .message-status {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.75rem;
+        }
+        
+        .message-content {
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+        
+        .message-time {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+        
+        .user-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .user-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            background: #f9fafb;
+            border-radius: 0.5rem;
+        }
+        
+        .status-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .status-online {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .status-offline {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .login-container {
+            max-width: 400px;
+            margin: 2rem auto;
+        }
+        
+        .demo-users {
+            margin-top: 1rem;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        .demo-users p {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        
+        .demo-user-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+        }
+        
+        .demo-user {
+            background: #f3f4f6;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login/Register Screen -->
+        <div id="auth-screen" class="login-container">
+            <div class="card">
+                <div class="header-content" style="justify-content: center; margin-bottom: 1.5rem;">
+                    <i data-lucide="message-circle" style="width: 48px; height: 48px; color: #2563eb;"></i>
+                </div>
+                <div style="text-align: center; margin-bottom: 1.5rem;">
+                    <h1>Offline Chat App</h1>
+                    <p>Stay connected even when others are offline</p>
+                </div>
+                
+                <div id="notifications"></div>
+                
+                <div class="tab-container">
+                    <button class="tab active" onclick="switchAuthTab('login')">Login</button>
+                    <button class="tab" onclick="switchAuthTab('register')">Register</button>
+                </div>
+                
+                <div id="login-form">
+                    <div class="form-group">
+                        <label class="form-label">User ID</label>
+                        <input type="text" class="form-input" id="login-userid" placeholder="Enter your user ID">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-input" id="login-password" placeholder="Enter your password">
+                    </div>
+                    <button class="btn btn-primary" style="width: 100%;" onclick="handleLogin()">
+                        <i data-lucide="log-in"></i>
+                        Login
+                    </button>
+                    
+                    <div class="demo-users">
+                        <p>Demo users (password: password123):</p>
+                        <div class="demo-user-list" id="demo-users"></div>
+                    </div>
+                </div>
+                
+                <div id="register-form" class="hidden">
+                    <div class="form-group">
+                        <label class="form-label">User ID</label>
+                        <input type="text" class="form-input" id="register-userid" placeholder="Choose a user ID">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-input" id="register-password" placeholder="Choose a password">
+                    </div>
+                    <button class="btn btn-primary" style="width: 100%;" onclick="handleRegister()">
+                        <i data-lucide="user"></i>
+                        Register
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Chat Screen -->
+        <div id="chat-screen" class="hidden">
+            <div class="card header">
+                <div class="header-content">
+                    <i data-lucide="message-circle" style="width: 32px; height: 32px; color: #2563eb;"></i>
+                    <div>
+                        <h1>Offline Chat</h1>
+                        <p id="current-user-display"></p>
+                    </div>
+                </div>
+                <button class="btn btn-danger" onclick="handleLogout()">
+                    <i data-lucide="log-out"></i>
+                    Logout
+                </button>
+            </div>
+            
+            <div id="chat-notifications"></div>
+            
+            <div class="grid grid-2">
+                <div class="card">
+                    <h2 style="margin-bottom: 1rem;">Send Message</h2>
+                    <div class="form-group">
+                        <label class="form-label">To User</label>
+                        <select class="form-select" id="recipient-select">
+                            <option value="">Select recipient</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Message</label>
+                        <textarea class="form-textarea" id="message-input" placeholder="Type your message..."></textarea>
+                    </div>
+                    <button class="btn btn-primary" style="width: 100%;" onclick="handleSendMessage()">
+                        <i data-lucide="send"></i>
+                        Send Message
+                    </button>
+                </div>
+                
+                <div class="card">
+                    <h2 style="margin-bottom: 1rem;">User Status</h2>
+                    <div class="user-list" id="user-list"></div>
+                </div>
+            </div>
+            
+            <div class="grid grid-2">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h2>Sent Messages</h2>
+                        <button class="btn btn-secondary" onclick="refreshSentMessages()">
+                            <i data-lucide="refresh-cw"></i>
+                            Refresh
+                        </button>
+                    </div>
+                    <div class="message-list" id="sent-messages"></div>
+                </div>
+                
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h2>Received Messages</h2>
+                        <button class="btn btn-secondary" onclick="refreshReceivedMessages()">
+                            <i data-lucide="refresh-cw"></i>
+                            Refresh
+                        </button>
+                    </div>
+                    <div class="message-list" id="received-messages"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE = 'http://localhost:3000/api';
+        
+        // Global state
+        let currentUser = null;
+        let token = null;
+        let users = [];
+        let sentMessages = [];
+        let receivedMessages = [];
+        
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUsers();
+            // Auto-refresh messages every 10 seconds when logged in
+            setInterval(() => {
+                if (currentUser) {
+                    refreshReceivedMessages();
+                    refreshSentMessages();
+                }
+            }, 10000);
+        });
+        
+        // Utility functions
+        function showNotification(message, type = 'info', containerId = 'notifications') {
+            const container = document.getElementById(containerId);
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            container.appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 5000);
+        }
+        
+        function switchAuthTab(tab) {
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            const tabs = document.querySelectorAll('.tab');
+            
+            tabs.forEach(t => t.classList.remove('active'));
+            
+            if (tab === 'login') {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+                tabs[0].classList.add('active');
+            } else {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                tabs[1].classList.add('active');
+            }
+        }
+        
+        function switchScreen(screen) {
+            const authScreen = document.getElementById('auth-screen');
+            const chatScreen = document.getElementById('chat-screen');
+            
+            if (screen === 'auth') {
+                authScreen.classList.remove('hidden');
+                chatScreen.classList.add('hidden');
+            } else {
+                authScreen.classList.add('hidden');
+                chatScreen.classList.remove('hidden');
+            }
+        }
+        
+        // API functions
+        async function apiRequest(endpoint, method = 'GET', body = null) {
+            const headers = {
+                'Content-Type': 'application/json',
+            };
+            
+            if (token) {
+                headers.Authorization = `Bearer ${token}`;
+            }
+            
+            const config = {
+                method,
+                headers,
+            };
+            
+            if (body) {
+                config.body = JSON.stringify(body);
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, config);
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || `HTTP ${response.status}`);
+                }
+                
+                return data;
+            } catch (error) {
+                console.error('API request failed:', error);
+                throw error;
+            }
+        }
+        
+        // Auth functions
+        async function handleRegister() {
+            const userId = document.getElementById('register-userid').value.trim();
+            const password = document.getElementById('register-password').value;
+            
+            if (!userId || !password) {
+                showNotification('Please fill in all fields', 'error');
+                return;
+            }
+            
+            try {
+                await apiRequest('/register', 'POST', {
+                    user_id: userId,
+                    password: password
+                });
+                
+                showNotification('Registration successful!', 'success');
+                document.getElementById('register-userid').value = '';
+                document.getElementById('register-password').value = '';
+                switchAuthTab('login');
+                loadUsers();
+            } catch (error) {
+                showNotification(error.message, 'error');
+            }
+        }
+        
+        async function handleLogin() {
+            const userId = document.getElementById('login-userid').value.trim();
+            const password = document.getElementById('login-password').value;
+            
+            if (!userId || !password) {
+                showNotification('Please fill in all fields', 'error');
+                return;
+            }
+            
+            try {
+                const result = await apiRequest('/login', 'POST', {
+                    user_id: userId,
+                    password: password
+                });
+                
+                currentUser = userId;
+                token = result.token;
+                receivedMessages = result.undelivered_messages || [];
+                
+                document.getElementById('current-user-display').textContent = `Logged in as ${currentUser}`;
+                
+                showNotification(`Welcome back, ${currentUser}!`, 'success', 'chat-notifications');
+                if (receivedMessages.length > 0) {
+                    showNotification(`You have ${receivedMessages.length} new messages!`, 'info', 'chat-notifications');
+                }
+                
+                switchScreen('chat');
+                await loadUsers();
+                refreshSentMessages();
+                refreshReceivedMessages();
+                
+            } catch (error) {
+                showNotification(error.message, 'error');
+            }
+        }
+        
+        async function handleLogout() {
+            try {
+                await apiRequest('/logout', 'POST');
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+            
+            currentUser = null;
+            token = null;
+            sentMessages = [];
+            receivedMessages = [];
+            
+            document.getElementById('login-userid').value = '';
+            document.getElementById('login-password').value = '';
+            document.getElementById('message-input').value = '';
+            document.getElementById('recipient-select').value = '';
+            
+            showNotification('Logged out successfully', 'info');
+            switchScreen('auth');
+        }
+        
+        // Message functions
+        async function handleSendMessage() {
+            const toUserId = document.getElementById('recipient-select').value;
+            const message = document.getElementById('message-input').value.trim();
+            
+            if (!toUserId || !message) {
+                showNotification('Please fill in all fields', 'error', 'chat-notifications');
+                return;
+            }
+            
+            try {
+                const result = await apiRequest('/send-message', 'POST', {
+                    to_user_id: toUserId,
+                    message: message
+                });
+                
+                document.getElementById('message-input').value = '';
+                document.getElementById('recipient-select').value = '';
+                
+                showNotification(
+                    result.delivered ? 'Message delivered!' : 'Message queued (recipient offline)',
+                    result.delivered ? 'success' : 'warning',
+                    'chat-notifications'
+                );
+                
+                refreshSentMessages();
+                
+            } catch (error) {
+                showNotification(error.message, 'error', 'chat-notifications');
+            }
+        }
+        
+        async function refreshSentMessages() {
+            if (!token) return;
+            
+            try {
+                const result = await apiRequest('/messages/sent');
+                sentMessages = result.messages;
+                displaySentMessages();
+            } catch (error) {
+                console.error('Failed to refresh sent messages:', error);
+            }
+        }
+        
+        async function refreshReceivedMessages() {
+            if (!token) return;
+            
+            try {
+                const result = await apiRequest('/messages/received');
+                receivedMessages = result.messages;
+                displayReceivedMessages();
+            } catch (error) {
+                console.error('Failed to refresh received messages:', error);
+            }
+        }
+        
+        function displaySentMessages() {
+            const container = document.getElementById('sent-messages');
+            
+            if (sentMessages.length === 0) {
+                container.innerHTML = '<p style="color: #6b7280; font-size: 0.875rem;">No messages sent yet</p>';
+                return;
+            }
+            
+            container.innerHTML = sentMessages.map(message => `
+                <div class="message sent">
+                    <div class="message-header">
+                        <span class="message-from">To: ${message.to}</span>
+                        <div class="message-status">
+                            ${getStatusIcon(message.status)}
+                            <span>${message.status}</span>
+                        </div>
+                    </div>
+                    <div class="message-content">${escapeHtml(message.message)}</div>
+                    <div class="message-time">${formatTime(message.timestamp)}</div>
+                </div>
+            `).join('');
+        }
+        
+        function displayReceivedMessages() {
+            const container = document.getElementById('received-messages');
+            
+            if (receivedMessages.length === 0) {
+                container.innerHTML = '<p style="color: #6b7280; font-size: 0.875rem;">No messages received</p>';
+                return;
+            }
+            
+            container.innerHTML = receivedMessages.map(message => `
+                <div class="message received">
+                    <div class="message-header">
+                        <span class="message-from">From: ${message.from}</span>
+                        <span style="font-size: 0.75rem; color: #10b981;">Received</span>
+                    </div>
+                    <div class="message-content">${escapeHtml(message.message)}</div>
+                    <div class="message-time">${formatTime(message.timestamp)}</div>
+                </div>
+            `).join('');
+        }
+        
+        // User functions
+        async function loadUsers() {
+            try {
+                const result = await apiRequest('/users');
+                users = result.users;
+                displayUsers();
+                updateRecipientSelect();
+                updateDemoUsers();
+            } catch (error) {
+                console.error('Failed to load users:', error);
+                // If not authenticated, show demo users from local knowledge
+                if (!token) {
+                    updateDemoUsers();
+                }
+            }
+        }
+        
+        function displayUsers() {
+            const container = document.getElementById('user-list');
+            
+            container.innerHTML = users.map(user => `
+                <div class="user-item">
+                    <span style="font-weight: 500;">${user.user_id}</span>
+                    <span class="status-badge ${user.online ? 'status-online' : 'status-offline'}">
+                        ${user.online ? 'Online' : 'Offline'}
+                    </span>
+                </div>
+            `).join('');
+        }
+        
+        function updateRecipientSelect() {
+            const select = document.getElementById('recipient-select');
+            const currentValue = select.value;
+            
+            select.innerHTML = '<option value="">Select recipient</option>' +
+                users.filter(user => user.user_id !== currentUser)
+                     .map(user => `<option value="${user.user_id}">${user.user_id} ${user.online ? '(online)' : '(offline)'}</option>`)
+                     .join('');
+            
+            // Restore previous selection if still valid
+            if (currentValue && users.some(u => u.user_id === currentValue)) {
+                select.value = currentValue;
+            }
+        }
+        
+        function updateDemoUsers() {
+            const container = document.getElementById('demo-users');
+            const demoUsers = ['alice', 'bob', 'charlie'];
+            
+            container.innerHTML = demoUsers.map(user => 
+                `<span class="demo-user">${user}</span>`
+            ).join('');
+        }
+        
+        // Utility functions
+        function getStatusIcon(status) {
+            const iconMap = {
+                pending: '<i data-lucide="clock" style="width: 16px; height: 16px; color: #eab308;"></i>',
+                delivered: '<i data-lucide="check" style="width: 16px; height: 16px; color: #22c55e;"></i>',
+                read: '<i data-lucide="check-check" style="width: 16px; height: 16px; color: #3b82f6;"></i>'
+            };
+            return iconMap[status] || iconMap.pending;
+        }
+        
+        function formatTime(timestamp) {
+            return new Date(timestamp).toLocaleTimeString();
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Refresh icons after dynamic content updates
+        function refreshIcons() {
+            lucide.createIcons();
+        }
+        
+        // Auto-refresh icons when messages are updated
+        const originalDisplaySentMessages = displaySentMessages;
+        const originalDisplayReceivedMessages = displayReceivedMessages;
+        
+        displaySentMessages = function() {
+            originalDisplaySentMessages.call(this);
+            setTimeout(refreshIcons, 100);
+        };
+        
+        displayReceivedMessages = function() {
+            originalDisplayReceivedMessages.call(this);
+            setTimeout(refreshIcons, 100);
+        };
+    </script>
+</body>
+</html>
