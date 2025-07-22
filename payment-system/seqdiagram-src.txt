@@ -1,0 +1,99 @@
+title Ecommerce application using payment system
+participant User
+#participant EcommerceApp as E-commerce App
+#participant Database as E-commerce DB
+
+participant EcommerceApp
+participant Database
+
+
+
+
+participant PSP
+
+#participant PSP as Payment Service Provider
+
+#participant PSPDatabase as PSP DB
+
+participant PSPDatabase
+
+
+
+note over User, PSPDatabase: Cart Checkout Process
+User->>EcommerceApp: GET /checkout
+EcommerceApp->>Database: Calculate cart total
+Database-->>EcommerceApp: Return cart total
+EcommerceApp-->>User: Display checkout form
+
+User->>EcommerceApp: POST /process-checkout (email, name)
+EcommerceApp->>EcommerceApp: Generate unique order_id
+EcommerceApp->>Database: INSERT order with 'pending' status
+EcommerceApp->>Database: INSERT order_items
+Database-->>EcommerceApp: Order saved
+
+note over EcommerceApp, PSP: PSP Registration
+EcommerceApp->>PSP: POST /api/register-payment
+note right of EcommerceApp: Payload: order_id, amount,<br/>callback_url, redirect_url
+PSP->>PSPDatabase: Check if payment_order_id exists
+PSPDatabase-->>PSP: Not found
+PSP->>PSP: Generate unique nonce
+PSP->>PSPDatabase: INSERT payment with 'pending' status
+PSPDatabase-->>PSP: Payment registered
+PSP-->>EcommerceApp: Return nonce and payment_url
+
+EcommerceApp->>Database: UPDATE order with psp_nonce
+EcommerceApp->>EcommerceApp: Store order info in session
+EcommerceApp-->>User: Redirect to PSP payment page
+
+note over User, PSPDatabase: Payment Processing
+User->>PSP: GET /payment/{nonce}
+PSP->>PSPDatabase: SELECT payment by nonce
+PSPDatabase-->>PSP: Return payment details
+PSP-->>User: Display payment form
+
+User->>PSP: POST /api/process-payment (nonce, payment_method)
+PSP->>PSPDatabase: SELECT payment details
+PSPDatabase-->>PSP: Return payment info
+PSP->>PSP: Simulate payment processing<br/>(random success/failure)
+
+alt Payment Success
+    PSP->>PSPDatabase: UPDATE payment status to 'completed'
+    PSPDatabase-->>PSP: Status updated
+
+    note over PSP, EcommerceApp: Callback Notification
+    PSP->>EcommerceApp: POST /payment-callback
+    note right of PSP: Payload: payment_order_id,<br/>nonce, status='completed'
+    EcommerceApp->>Database: UPDATE order status to 'completed'<br/>and payment_status to 'completed'
+    Database-->>EcommerceApp: Order updated
+    EcommerceApp-->>PSP: Return success response
+
+    PSP-->>User: Redirect to /payment-result?status=completed&nonce={nonce}
+    User->>EcommerceApp: GET /payment-result
+    EcommerceApp->>Database: UPDATE order status (final confirmation)
+    EcommerceApp->>EcommerceApp: Clear cart from session
+    EcommerceApp-->>User: Display success page with order details
+
+else Payment Failure
+    PSP->>PSPDatabase: UPDATE payment status to 'failed'
+    PSPDatabase-->>PSP: Status updated
+
+    note over PSP, EcommerceApp: Callback Notification
+    PSP->>EcommerceApp: POST /payment-callback
+    note right of PSP: Payload: payment_order_id,<br/>nonce, status='failed'
+    EcommerceApp->>Database: UPDATE order status to 'failed'<br/>and payment_status to 'failed'
+    Database-->>EcommerceApp: Order updated
+    EcommerceApp-->>PSP: Return success response
+
+    PSP-->>User: Redirect to /payment-result?status=failed&nonce={nonce}
+    User->>EcommerceApp: GET /payment-result
+    EcommerceApp->>Database: UPDATE order status (final confirmation)
+    note over EcommerceApp: Cart remains in session
+    EcommerceApp-->>User: Display failure page with retry option
+end
+
+note over User, PSPDatabase: Optional Status Check
+User->>PSP: GET /api/payment-status/{nonce}
+PSP->>PSPDatabase: SELECT payment status
+PSPDatabase-->>PSP: Return status info
+PSP-->>User: Return payment status JSON
+
