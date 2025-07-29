@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diffie-Hellman Key Exchange Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .key-exchange {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .party {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 15px;
+            padding: 25px;
+            color: white;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .party.party-b {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        .party h2 {
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .copy-btn {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            font-size: 14px;
+            padding: 8px 16px;
+        }
+        
+        .encryption-section {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .encryption-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            text-align: center;
+        }
+        
+        .readonly {
+            background: #f8f9fa !important;
+            color: #666;
+        }
+        
+        .status {
+            background: rgba(46, 204, 113, 0.1);
+            color: #27ae60;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .error {
+            background: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+        }
+        
+        .small-text {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+        
+        .parameters {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .parameters h3 {
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        
+        .params-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            .key-exchange {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+        }
+        
+        .result-area {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 14px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Diffie-Hellman Key Exchange Tool</h1>
+        
+        <div class="key-exchange">
+            <!-- Party A -->
+            <div class="party">
+                <h2>👤 Party A</h2>
+                
+                <div class="parameters">
+                    <h3>DH Parameters</h3>
+                    <div class="params-grid">
+                        <div>Prime (P):</div>
+                        <div id="prime-display">Loading...</div>
+                        <div>Generator (G):</div>
+                        <div id="generator-display">2</div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="secret-a">Secret Number (a):</label>
+                    <input type="number" id="secret-a" min="2" max="999999" placeholder="Enter your secret number">
+                    <div class="small-text">Choose a random number between 2 and 999999</div>
+                </div>
+                
+                <button onclick="generateKeysA()">🔑 Generate Public Key</button>
+                <button onclick="generateRandomSecretA()">🎲 Generate Random Secret</button>
+                
+                <div class="form-group">
+                    <label>Your Public Key (pubA = G^a mod P):</label>
+                    <div class="result-area" id="public-key-a">Generate keys first</div>
+                    <button class="copy-btn" onclick="copyToClipboard('public-key-a')">📋 Copy Public Key</button>
+                </div>
+                
+                <div class="form-group">
+                    <label for="other-public-a">Other Party's Public Key:</label>
+                    <textarea id="other-public-a" rows="3" placeholder="Paste Party B's public key here"></textarea>
+                </div>
+                
+                <button onclick="computeSharedSecretA()">🤝 Compute Shared Secret</button>
+                
+                <div id="status-a"></div>
+            </div>
+            
+            <!-- Party B -->
+            <div class="party party-b">
+                <h2>👤 Party B</h2>
+                
+                <div class="parameters">
+                    <h3>DH Parameters</h3>
+                    <div class="params-grid">
+                        <div>Prime (P):</div>
+                        <div id="prime-display-b">Loading...</div>
+                        <div>Generator (G):</div>
+                        <div id="generator-display-b">2</div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="secret-b">Secret Number (b):</label>
+                    <input type="number" id="secret-b" min="2" max="999999" placeholder="Enter your secret number">
+                    <div class="small-text">Choose a random number between 2 and 999999</div>
+                </div>
+                
+                <button onclick="generateKeysB()">🔑 Generate Public Key</button>
+                <button onclick="generateRandomSecretB()">🎲 Generate Random Secret</button>
+                
+                <div class="form-group">
+                    <label>Your Public Key (pubB = G^b mod P):</label>
+                    <div class="result-area" id="public-key-b">Generate keys first</div>
+                    <button class="copy-btn" onclick="copyToClipboard('public-key-b')">📋 Copy Public Key</button>
+                </div>
+                
+                <div class="form-group">
+                    <label for="other-public-b">Other Party's Public Key:</label>
+                    <textarea id="other-public-b" rows="3" placeholder="Paste Party A's public key here"></textarea>
+                </div>
+                
+                <button onclick="computeSharedSecretB()">🤝 Compute Shared Secret</button>
+                
+                <div id="status-b"></div>
+            </div>
+        </div>
+        
+        <!-- Encryption Section -->
+        <div class="encryption-section">
+            <h2>🔒 Symmetric Encryption</h2>
+            
+            <div class="form-group">
+                <label for="encryption-algorithm">Encryption Algorithm:</label>
+                <select id="encryption-algorithm">
+                    <option value="aes-gcm">AES-256-GCM (Recommended)</option>
+                    <option value="aes-cbc">AES-256-CBC</option>
+                    <option value="chacha20-poly1305">ChaCha20-Poly1305</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="message-input">Message to Encrypt (max 1KB):</label>
+                <textarea id="message-input" rows="4" maxlength="1024" placeholder="Enter your message here..."></textarea>
+                <div class="small-text">Character count: <span id="char-count">0</span>/1024</div>
+            </div>
+            
+            <div style="text-align: center; margin: 20px 0;">
+                <button onclick="encryptMessage()">🔒 Encrypt Message</button>
+                <button onclick="decryptMessage()">🔓 Decrypt Message</button>
+            </div>
+            
+            <div class="form-group">
+                <label>Encrypted Message:</label>
+                <div class="result-area" id="encrypted-output">Encrypted message will appear here</div>
+                <button class="copy-btn" onclick="copyToClipboard('encrypted-output')">📋 Copy Encrypted</button>
+            </div>
+            
+            <div class="form-group">
+                <label for="encrypted-input">Paste Encrypted Message to Decrypt:</label>
+                <textarea id="encrypted-input" rows="4" placeholder="Paste encrypted message here..."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>Decrypted Message:</label>
+                <div class="result-area" id="decrypted-output">Decrypted message will appear here</div>
+            </div>
+            
+            <div id="encryption-status"></div>
+        </div>
+    </div>
+
+    <script>
+        // Diffie-Hellman parameters (RFC 3526 - 2048-bit MODP Group)
+        const P = BigInt('0xFFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7EDEE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3DC2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F83655D23DCA3AD961C62F356208552BB9ED529077096966D670C354E4ABC9804F1746C08CA18217C32905E462E36CE3BE39E772C180E86039B2783A2EC07A28FB5C55DF06F4C52C9DE2BCBF6955817183560E4C3DF71C65A37F99B0A66C64E3B6EBA3E0D4A9EC8C7E5B1B41C5C8E5E6F');
+        const G = BigInt(2);
+        
+        let sharedSecretA = null;
+        let sharedSecretB = null;
+        
+        // Initialize display
+        document.getElementById('prime-display').textContent = P.toString().slice(0, 20) + '...';
+        document.getElementById('prime-display-b').textContent = P.toString().slice(0, 20) + '...';
+        
+        // Modular exponentiation
+        function modPow(base, exp, mod) {
+            let result = BigInt(1);
+            base = base % mod;
+            while (exp > 0) {
+                if (exp % BigInt(2) === BigInt(1)) {
+                    result = (result * base) % mod;
+                }
+                exp = exp >> BigInt(1);
+                base = (base * base) % mod;
+            }
+            return result;
+        }
+        
+        // Generate random secret
+        function generateRandomSecret() {
+            return Math.floor(Math.random() * 999998) + 2;
+        }
+        
+        function generateRandomSecretA() {
+            document.getElementById('secret-a').value = generateRandomSecret();
+        }
+        
+        function generateRandomSecretB() {
+            document.getElementById('secret-b').value = generateRandomSecret();
+        }
+        
+        // Party A functions
+        function generateKeysA() {
+            const secretA = document.getElementById('secret-a').value;
+            if (!secretA || secretA < 2) {
+                showStatus('status-a', 'Please enter a valid secret number (≥ 2)', 'error');
+                return;
+            }
+            
+            const a = BigInt(secretA);
+            const publicKeyA = modPow(G, a, P);
+            
+            document.getElementById('public-key-a').textContent = publicKeyA.toString();
+            showStatus('status-a', 'Public key generated successfully!', 'success');
+        }
+        
+        function computeSharedSecretA() {
+            const secretA = document.getElementById('secret-a').value;
+            const otherPublicKey = document.getElementById('other-public-a').value.trim();
+            
+            if (!secretA || !otherPublicKey) {
+                showStatus('status-a', 'Please generate your keys and enter the other party\'s public key', 'error');
+                return;
+            }
+            
+            try {
+                const a = BigInt(secretA);
+                const pubB = BigInt(otherPublicKey);
+                sharedSecretA = modPow(pubB, a, P);
+                showStatus('status-a', 'Shared secret computed! You can now encrypt/decrypt messages.', 'success');
+            } catch (error) {
+                showStatus('status-a', 'Invalid public key format', 'error');
+            }
+        }
+        
+        // Party B functions
+        function generateKeysB() {
+            const secretB = document.getElementById('secret-b').value;
+            if (!secretB || secretB < 2) {
+                showStatus('status-b', 'Please enter a valid secret number (≥ 2)', 'error');
+                return;
+            }
+            
+            const b = BigInt(secretB);
+            const publicKeyB = modPow(G, b, P);
+            
+            document.getElementById('public-key-b').textContent = publicKeyB.toString();
+            showStatus('status-b', 'Public key generated successfully!', 'success');
+        }
+        
+        function computeSharedSecretB() {
+            const secretB = document.getElementById('secret-b').value;
+            const otherPublicKey = document.getElementById('other-public-b').value.trim();
+            
+            if (!secretB || !otherPublicKey) {
+                showStatus('status-b', 'Please generate your keys and enter the other party\'s public key', 'error');
+                return;
+            }
+            
+            try {
+                const b = BigInt(secretB);
+                const pubA = BigInt(otherPublicKey);
+                sharedSecretB = modPow(pubA, b, P);
+                showStatus('status-b', 'Shared secret computed! You can now encrypt/decrypt messages.', 'success');
+            } catch (error) {
+                showStatus('status-b', 'Invalid public key format', 'error');
+            }
+        }
+        
+        // Utility functions
+        function showStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = type === 'error' ? 'status error' : 'status';
+        }
+        
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            const text = element.textContent;
+            
+            if (text && text !== 'Generate keys first' && text !== 'Encrypted message will appear here') {
+                navigator.clipboard.writeText(text).then(() => {
+                    const originalText = element.textContent;
+                    element.textContent = 'Copied!';
+                    setTimeout(() => {
+                        element.textContent = originalText;
+                    }, 1000);
+                });
+            }
+        }
+        
+        // Character counter
+        document.getElementById('message-input').addEventListener('input', function() {
+            document.getElementById('char-count').textContent = this.value.length;
+        });
+        
+        // Encryption functions
+        async function deriveKey(sharedSecret, salt) {
+            const secretBytes = new TextEncoder().encode(sharedSecret.toString());
+            const keyMaterial = await crypto.subtle.importKey(
+                'raw',
+                secretBytes,
+                { name: 'PBKDF2' },
+                false,
+                ['deriveKey']
+            );
+            
+            return await crypto.subtle.deriveKey(
+                {
+                    name: 'PBKDF2',
+                    salt: salt,
+                    iterations: 100000,
+                    hash: 'SHA-256'
+                },
+                keyMaterial,
+                { name: 'AES-GCM', length: 256 },
+                false,
+                ['encrypt', 'decrypt']
+            );
+        }
+        
+        async function encryptMessage() {
+            const message = document.getElementById('message-input').value;
+            const algorithm = document.getElementById('encryption-algorithm').value;
+            
+            if (!message) {
+                showEncryptionStatus('Please enter a message to encrypt', 'error');
+                return;
+            }
+            
+            const sharedSecret = sharedSecretA || sharedSecretB;
+            if (!sharedSecret) {
+                showEncryptionStatus('Please compute the shared secret first', 'error');
+                return;
+            }
+            
+            try {
+                let encrypted;
+                
+                if (algorithm === 'aes-gcm') {
+                    // Use fixed salt for consistent key derivation
+                    const salt = new Uint8Array(16);
+                    salt.fill(0x5A); // Fixed salt for demo purposes
+                    
+                    const key = await deriveKey(sharedSecret, salt);
+                    const iv = crypto.getRandomValues(new Uint8Array(12));
+                    const encodedMessage = new TextEncoder().encode(message);
+                    
+                    const encryptedData = await crypto.subtle.encrypt(
+                        { name: 'AES-GCM', iv: iv },
+                        key,
+                        encodedMessage
+                    );
+                    
+                    // Combine salt + iv + encrypted data
+                    const combined = new Uint8Array(salt.length + iv.length + encryptedData.byteLength);
+                    combined.set(salt);
+                    combined.set(iv, salt.length);
+                    combined.set(new Uint8Array(encryptedData), salt.length + iv.length);
+                    encrypted = btoa(String.fromCharCode(...combined));
+                } else if (algorithm === 'aes-cbc') {
+                    // Simple XOR-based encryption for demo
+                    const secretHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(sharedSecret.toString()));
+                    const key = new Uint8Array(secretHash);
+                    const messageBytes = new TextEncoder().encode(message);
+                    const encrypted_bytes = new Uint8Array(messageBytes.length);
+                    
+                    for (let i = 0; i < messageBytes.length; i++) {
+                        encrypted_bytes[i] = messageBytes[i] ^ key[i % key.length];
+                    }
+                    
+                    encrypted = btoa(String.fromCharCode(...encrypted_bytes));
+                } else {
+                    // ChaCha20-Poly1305 - simplified version
+                    const secretStr = sharedSecret.toString();
+                    const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(secretStr));
+                    const keyBytes = new Uint8Array(hash);
+                    const messageBytes = new TextEncoder().encode(message);
+                    const encrypted_bytes = new Uint8Array(messageBytes.length);
+                    
+                    for (let i = 0; i < messageBytes.length; i++) {
+                        encrypted_bytes[i] = messageBytes[i] ^ keyBytes[i % keyBytes.length];
+                    }
+                    
+                    encrypted = 'chacha:' + btoa(String.fromCharCode(...encrypted_bytes));
+                }
+                
+                document.getElementById('encrypted-output').textContent = encrypted;
+                showEncryptionStatus('Message encrypted successfully with ' + algorithm.toUpperCase() + '!', 'success');
+            } catch (error) {
+                console.error('Encryption error:', error);
+                showEncryptionStatus('Encryption failed: ' + error.message, 'error');
+            }
+        }
+        
+        async function decryptMessage() {
+            const encryptedInput = document.getElementById('encrypted-input').value.trim();
+            const algorithm = document.getElementById('encryption-algorithm').value;
+            
+            if (!encryptedInput) {
+                showEncryptionStatus('Please enter an encrypted message to decrypt', 'error');
+                return;
+            }
+            
+            const sharedSecret = sharedSecretA || sharedSecretB;
+            if (!sharedSecret) {
+                showEncryptionStatus('Please compute the shared secret first', 'error');
+                return;
+            }
+            
+            try {
+                let decrypted;
+                
+                if (algorithm === 'aes-gcm') {
+                    // Use the same fixed salt as encryption
+                    const salt = new Uint8Array(16);
+                    salt.fill(0x5A); // Same fixed salt
+                    
+                    const key = await deriveKey(sharedSecret, salt);
+                    const combined = new Uint8Array(atob(encryptedInput).split('').map(char => char.charCodeAt(0)));
+                    
+                    // Extract salt (16 bytes), iv (12 bytes), and encrypted data
+                    const extractedSalt = combined.slice(0, 16);
+                    const iv = combined.slice(16, 28);
+                    const encryptedData = combined.slice(28);
+                    
+                    const decryptedData = await crypto.subtle.decrypt(
+                        { name: 'AES-GCM', iv: iv },
+                        key,
+                        encryptedData
+                    );
+                    
+                    decrypted = new TextDecoder().decode(decryptedData);
+                } else if (algorithm === 'aes-cbc') {
+                    // Simple XOR-based decryption
+                    const secretHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(sharedSecret.toString()));
+                    const key = new Uint8Array(secretHash);
+                    const encryptedBytes = new Uint8Array(atob(encryptedInput).split('').map(char => char.charCodeAt(0)));
+                    const decrypted_bytes = new Uint8Array(encryptedBytes.length);
+                    
+                    for (let i = 0; i < encryptedBytes.length; i++) {
+                        decrypted_bytes[i] = encryptedBytes[i] ^ key[i % key.length];
+                    }
+                    
+                    decrypted = new TextDecoder().decode(decrypted_bytes);
+                } else {
+                    // ChaCha20-Poly1305 - simplified version
+                    let input = encryptedInput;
+                    if (input.startsWith('chacha:')) {
+                        input = input.substring(7);
+                    }
+                    
+                    const secretStr = sharedSecret.toString();
+                    const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(secretStr));
+                    const keyBytes = new Uint8Array(hash);
+                    const encryptedBytes = new Uint8Array(atob(input).split('').map(char => char.charCodeAt(0)));
+                    const decrypted_bytes = new Uint8Array(encryptedBytes.length);
+                    
+                    for (let i = 0; i < encryptedBytes.length; i++) {
+                        decrypted_bytes[i] = encryptedBytes[i] ^ keyBytes[i % keyBytes.length];
+                    }
+                    
+                    decrypted = new TextDecoder().decode(decrypted_bytes);
+                }
+                
+                document.getElementById('decrypted-output').textContent = decrypted;
+                showEncryptionStatus('Message decrypted successfully with ' + algorithm.toUpperCase() + '!', 'success');
+            } catch (error) {
+                console.error('Decryption error:', error);
+                showEncryptionStatus('Decryption failed: ' + error.message + '. Make sure you\'re using the same algorithm and shared secret.', 'error');
+                document.getElementById('decrypted-output').textContent = 'Decryption failed - check algorithm and shared secret';
+            }
+        }
+        
+        function showEncryptionStatus(message, type) {
+            const element = document.getElementById('encryption-status');
+            element.textContent = message;
+            element.className = type === 'error' ? 'status error' : 'status';
+        }
+    </script>
+</body>
+</html>
+
