@@ -1,0 +1,9 @@
+[package]
+name = "pyin_pitch_detector"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+pyin = "1.2"
+ndarray = "0.15"
+hound = "3.5"
